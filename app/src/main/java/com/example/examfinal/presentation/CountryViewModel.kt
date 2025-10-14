@@ -14,6 +14,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+/**
+ * ViewModel para la gestión de países.
+ *
+ * Maneja la lógica de presentación para la lista de países y los detalles individuales,
+ * incluyendo búsqueda, filtrado y persistencia de preferencias del usuario.
+ *
+ * @property getCountries Caso de uso para obtener la lista de países
+ * @property getCountryDetail Caso de uso para obtener el detalle de un país específico
+ * @property saveLastVisitedCountry Caso de uso para guardar el último país visitado
+ * @property getLastVisitedCountry Caso de uso para recuperar el último país visitado
+ */
+
 @HiltViewModel
 class CountryViewModel @Inject constructor(
     private val getCountries: GetCountries,
@@ -50,6 +63,13 @@ class CountryViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Obtiene la lista completa de países desde la API.
+     *
+     * Actualiza el estado a Loading durante la carga, y luego a Success o Error
+     * dependiendo del resultado. Si existe un último país visitado, prepara el
+     * scroll automático hacia ese país.
+     */
     fun fetchCountries() {
         viewModelScope.launch {
             _countriesState.value = UiState.Loading
@@ -73,6 +93,15 @@ class CountryViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Obtiene el detalle de un país específico por su nombre.
+     *
+     * @param name Nombre común del país a buscar
+     *
+     * Actualiza el estado a Loading durante la carga. Si la carga es exitosa,
+     * guarda automáticamente el país como último visitado para futuras sesiones.
+     */
+
     fun fetchCountryDetail(name: String) {
         viewModelScope.launch {
             _countryDetailState.value = UiState.Loading
@@ -91,10 +120,24 @@ class CountryViewModel @Inject constructor(
         }
     }
 
+
+    /**
+     * Limpia el estado del detalle del país.
+     *
+     * Útil al salir de la pantalla de detalle para evitar mostrar
+     * datos obsoletos al volver a entrar.
+     */
     fun clearDetail() {
         _countryDetailState.value = UiState.Idle
     }
 
+    /**
+     * Actualiza la query de búsqueda y filtra la lista de países.
+     *
+     * @param query Texto de búsqueda ingresado por el usuario
+     *
+     * Filtra los países por nombre común u oficial, sin distinguir mayúsculas.
+     */
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
         filterCountries(query)
@@ -105,6 +148,14 @@ class CountryViewModel @Inject constructor(
         _countries.value = _allCountries.value
     }
 
+    /**
+     * Filtra la lista de países según el texto de búsqueda.
+     *
+     * @param query Texto a buscar en los nombres de países
+     *
+     * Busca coincidencias en el nombre común y oficial del país,
+     * sin distinguir entre mayúsculas y minúsculas.
+     */
     private fun filterCountries(query: String) {
         _countries.value = if (query.isBlank()) {
             _allCountries.value
@@ -116,6 +167,13 @@ class CountryViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Limpia la bandera de scroll automático.
+     *
+     * Debe llamarse después de realizar el scroll para evitar
+     * scrolls repetidos innecesarios.
+     */
+
     fun clearScrollToCountry() {
         _scrollToCountry.value = null
     }
@@ -124,6 +182,14 @@ class CountryViewModel @Inject constructor(
         fetchCountries()
     }
 
+    /**
+     * Reintenta cargar el detalle de un país específico.
+     *
+     * @param name Nombre del país a cargar
+     *
+     * Útil cuando ocurre un error durante la carga del detalle,
+     * permitiendo al usuario reintentar la operación.
+     */
     fun retryLoadCountryDetail(name: String) {
         fetchCountryDetail(name)
     }

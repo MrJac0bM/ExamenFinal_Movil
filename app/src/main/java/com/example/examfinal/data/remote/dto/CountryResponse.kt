@@ -26,7 +26,7 @@ fun CountryResponse.toDomain(): CountryDomain {
     )
 }
 
-// O para una lista completa:
+
 fun List<CountryResponse>.toDomain(): List<CountryDomain> {
     return this.map { it.toDomain() }
 }

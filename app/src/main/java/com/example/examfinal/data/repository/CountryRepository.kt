@@ -10,10 +10,32 @@ import com.example.examfinal.domain.CountryDomain
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
+
+/**
+ * Repositorio para la gestión de datos de países.
+ *
+ * Actúa como única fuente de verdad para los datos de países,
+ * coordinando entre la API remota y el almacenamiento local de preferencias.
+ *
+ * @property apiService Servicio para las llamadas a la API REST Countries
+ * @property preferencesManager Gestor de preferencias locales del usuario
+ */
+
+
+
 class CountryRepository @Inject constructor(
     private val apiService: CountryApiService,
     private val preferencesManager: PreferencesManager
 ) {
+
+    /**
+     * Obtiene la lista completa de países desde la API.
+     *
+     * @return Result<List<CountryDomain>> Lista de países o error
+     *
+     * Maneja excepciones de red y convierte los datos de respuesta
+     * al modelo de dominio de la aplicación.
+     */
 
     suspend fun getCountries(): Result<List<CountryDomain>> {
         return try {
@@ -27,6 +49,15 @@ class CountryRepository @Inject constructor(
             Result.failure(Exception("Error al cargar países: ${e.message}"))
         }
     }
+    /**
+     * Obtiene el detalle de un país específico por su nombre.
+     *
+     * @param name Nombre del país a buscar
+     * @return Result<CountryDetailDomain> Detalle del país o error
+     *
+     * Realiza una búsqueda por nombre en la API y retorna el primer resultado.
+     * Convierte la respuesta al modelo de dominio de la aplicación.
+     */
 
     suspend fun getCountryDetail(name: String): Result<CountryDetailDomain> {
         return try {
@@ -42,10 +73,26 @@ class CountryRepository @Inject constructor(
         }
     }
 
+    /**
+     * Guarda el nombre del último país visitado por el usuario.
+     *
+     * @param countryName Nombre del país a guardar
+     *
+     * Almacena la posicion  localmente usando DataStore
+     */
+
     suspend fun saveLastVisitedCountry(countryName: String) {
         preferencesManager.saveLastVisitedCountry(countryName)
     }
 
+    /**
+     * Recupera el nombre del último país visitado.
+     *
+     * @return Flow<String?> Flow que emite el nombre del último país visitado o null
+     *
+     * Retorna un Flow reactivo que permite observar cambios en la preferencia
+     * en tiempo real.
+     */
     fun getLastVisitedCountry(): Flow<String?> {
         return preferencesManager.lastVisitedCountry
     }

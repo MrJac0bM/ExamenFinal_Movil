@@ -91,7 +91,7 @@ fun ListMainScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Barra de búsqueda - solo mostrar cuando hay datos exitosos
+
             if (countriesState is UiState.Success) {
                 OutlinedTextField(
                     value = searchQuery,
@@ -165,7 +165,7 @@ fun ListMainScreen(
                                 )
                             }
                         } else if (state.data.isEmpty()) {
-                            // Lista vacía desde la API
+
                             Column(
                                 modifier = Modifier
                                     .align(Alignment.Center)
