@@ -16,7 +16,7 @@ Aplicación móvil Android que consume la API de REST Countries para mostrar inf
 - **Lenguaje**: Kotlin
 - **UI**: Jetpack Compose
 - **Arquitectura**: MVVM + Clean Architecture
-- **Inyección de Dependencias**: Hilt/Dagger
+- **Inyección de Dependencias**: Hilt
 - **Networking**: Retrofit + OkHttp
 - **Almacenamiento**: DataStore Preferences
 - **Imágenes**: Coil
