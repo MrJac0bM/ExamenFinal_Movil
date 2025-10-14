@@ -1,4 +1,3 @@
-// data/repository/CountryRepository.kt
 package com.example.examfinal.data.repository
 
 import com.example.examfinal.data.local.PreferencesManager
@@ -16,29 +15,36 @@ class CountryRepository @Inject constructor(
     private val preferencesManager: PreferencesManager
 ) {
 
-    suspend fun getCountries(): List<CountryDomain> {
+    suspend fun getCountries(): Result<List<CountryDomain>> {
         return try {
             val response = apiService.getAllCountries()
-            response.map { it.toDomain() }
+            if (response.isEmpty()) {
+                Result.failure(Exception("No se encontraron países"))
+            } else {
+                Result.success(response.map { it.toDomain() })
+            }
         } catch (e: Exception) {
-            emptyList()
+            Result.failure(Exception("Error al cargar países: ${e.message}"))
         }
     }
 
-    suspend fun getCountryDetail(name: String): CountryDetailDomain? {
+    suspend fun getCountryDetail(name: String): Result<CountryDetailDomain> {
         return try {
             val response = apiService.getCountryByName(name)
-            response.firstOrNull()?.toDetailDomain()
+            val country = response.firstOrNull()
+            if (country != null) {
+                Result.success(country.toDetailDomain())
+            } else {
+                Result.failure(Exception("País no encontrado"))
+            }
         } catch (e: Exception) {
-            null
+            Result.failure(Exception("Error al cargar el país: ${e.message}"))
         }
     }
-
 
     suspend fun saveLastVisitedCountry(countryName: String) {
         preferencesManager.saveLastVisitedCountry(countryName)
     }
-
 
     fun getLastVisitedCountry(): Flow<String?> {
         return preferencesManager.lastVisitedCountry

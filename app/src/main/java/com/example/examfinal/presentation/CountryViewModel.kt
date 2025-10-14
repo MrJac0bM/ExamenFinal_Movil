@@ -24,14 +24,14 @@ class CountryViewModel @Inject constructor(
 
     private val _allCountries = MutableStateFlow<List<CountryDomain>>(emptyList())
 
+    private val _countriesState = MutableStateFlow<UiState<List<CountryDomain>>>(UiState.Idle)
+    val countriesState: StateFlow<UiState<List<CountryDomain>>> = _countriesState
+
     private val _countries = MutableStateFlow<List<CountryDomain>>(emptyList())
     val countries: StateFlow<List<CountryDomain>> = _countries
 
-    private val _countryDetail = MutableStateFlow<CountryDetailDomain?>(null)
-    val countryDetail: StateFlow<CountryDetailDomain?> = _countryDetail
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    private val _countryDetailState = MutableStateFlow<UiState<CountryDetailDomain>>(UiState.Idle)
+    val countryDetailState: StateFlow<UiState<CountryDetailDomain>> = _countryDetailState
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
@@ -43,7 +43,6 @@ class CountryViewModel @Inject constructor(
     val scrollToCountry: StateFlow<String?> = _scrollToCountry
 
     init {
-
         viewModelScope.launch {
             getLastVisitedCountry().collect { countryName ->
                 _lastVisitedCountry.value = countryName
@@ -53,33 +52,47 @@ class CountryViewModel @Inject constructor(
 
     fun fetchCountries() {
         viewModelScope.launch {
-            _isLoading.value = true
+            _countriesState.value = UiState.Loading
+
             val result = getCountries()
-            _allCountries.value = result
-            _countries.value = result
-            _isLoading.value = false
+
+            result.onSuccess { countryList ->
+                _allCountries.value = countryList
+                _countries.value = countryList
+                _countriesState.value = UiState.Success(countryList)
 
 
-            _lastVisitedCountry.value?.let { lastCountry ->
-                _scrollToCountry.value = lastCountry
+                _lastVisitedCountry.value?.let { lastCountry ->
+                    _scrollToCountry.value = lastCountry
+                }
+            }.onFailure { exception ->
+                _countriesState.value = UiState.Error(
+                    exception.message ?: "Error  al cargar países"
+                )
             }
         }
     }
 
     fun fetchCountryDetail(name: String) {
         viewModelScope.launch {
-            _isLoading.value = true
+            _countryDetailState.value = UiState.Loading
+
             val result = getCountryDetail(name)
-            _countryDetail.value = result
-            _isLoading.value = false
 
+            result.onSuccess { country ->
+                _countryDetailState.value = UiState.Success(country)
 
-            saveLastVisitedCountry(name)
+                saveLastVisitedCountry(name)
+            }.onFailure { exception ->
+                _countryDetailState.value = UiState.Error(
+                    exception.message ?: "Error desconocido al cargar el país"
+                )
+            }
         }
     }
 
     fun clearDetail() {
-        _countryDetail.value = null
+        _countryDetailState.value = UiState.Idle
     }
 
     fun onSearchQueryChange(query: String) {
@@ -105,5 +118,13 @@ class CountryViewModel @Inject constructor(
 
     fun clearScrollToCountry() {
         _scrollToCountry.value = null
+    }
+
+    fun retryLoadCountries() {
+        fetchCountries()
+    }
+
+    fun retryLoadCountryDetail(name: String) {
+        fetchCountryDetail(name)
     }
 }

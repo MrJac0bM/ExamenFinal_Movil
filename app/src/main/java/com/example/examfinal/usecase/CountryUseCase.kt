@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetCountries @Inject constructor(
     private val repository: CountryRepository
 ) {
-    suspend operator fun invoke(): List<CountryDomain> {
+    suspend operator fun invoke(): Result<List<CountryDomain>> {
         return repository.getCountries()
     }
 }
