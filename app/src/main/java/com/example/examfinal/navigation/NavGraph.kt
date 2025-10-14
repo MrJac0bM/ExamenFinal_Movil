@@ -9,33 +9,45 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.examfinal.presentation.CountryViewModel
+import com.example.examfinal.views.CountryDetailScreen
 import com.example.examfinal.views.ListMainScreen
 
 sealed class Screen(val route: String) {
-    object Search : Screen("search")
-    object List : Screen("list")
-    //object MovieDetail : Screen("movie_detail/{movieId}") {
-    //    fun createRoute(movieId: String) = "movie_detail/$movieId"
-   // }
+    object CountryList : Screen("country_list")
+    object CountryDetail : Screen("country_detail/{countryName}") {
+        fun createRoute(countryName: String) = "country_detail/$countryName"
+    }
 }
 
+// NavGraph.kt
 @Composable
 fun NavGraph(
-    navController: NavHostController = rememberNavController(),
-    startDestination: String = Screen.List.route
+    navController: NavHostController,
+    viewModel: CountryViewModel
 ) {
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = Screen.CountryList.route
     ) {
-        composable(Screen.List.route) {
-            val viewModel: CountryViewModel = hiltViewModel()
+        composable(Screen.CountryList.route) {
             ListMainScreen(
                 navController = navController,
                 viewModel = viewModel
             )
         }
 
+        composable(
+            route = Screen.CountryDetail.route,
+            arguments = listOf(
+                navArgument("countryName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val countryName = backStackEntry.arguments?.getString("countryName") ?: ""
+            CountryDetailScreen(
+                navController = navController,
+                viewModel = viewModel,
+                countryName = countryName
+            )
+        }
     }
 }
-
