@@ -6,6 +6,8 @@ import com.example.examfinal.domain.CountryDetailDomain
 import com.example.examfinal.domain.CountryDomain
 import com.example.examfinal.usecase.GetCountries
 import com.example.examfinal.usecase.GetCountryDetail
+import com.example.examfinal.usecase.GetLastVisitedCountry
+import com.example.examfinal.usecase.SaveLastVisitedCountry
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +17,9 @@ import javax.inject.Inject
 @HiltViewModel
 class CountryViewModel @Inject constructor(
     private val getCountries: GetCountries,
-    private val getCountryDetail: GetCountryDetail
+    private val getCountryDetail: GetCountryDetail,
+    private val saveLastVisitedCountry: SaveLastVisitedCountry,
+    private val getLastVisitedCountry: GetLastVisitedCountry
 ) : ViewModel() {
 
     private val _allCountries = MutableStateFlow<List<CountryDomain>>(emptyList())
@@ -32,6 +36,21 @@ class CountryViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
+    private val _lastVisitedCountry = MutableStateFlow<String?>(null)
+    val lastVisitedCountry: StateFlow<String?> = _lastVisitedCountry
+
+    private val _scrollToCountry = MutableStateFlow<String?>(null)
+    val scrollToCountry: StateFlow<String?> = _scrollToCountry
+
+    init {
+
+        viewModelScope.launch {
+            getLastVisitedCountry().collect { countryName ->
+                _lastVisitedCountry.value = countryName
+            }
+        }
+    }
+
     fun fetchCountries() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -39,6 +58,11 @@ class CountryViewModel @Inject constructor(
             _allCountries.value = result
             _countries.value = result
             _isLoading.value = false
+
+
+            _lastVisitedCountry.value?.let { lastCountry ->
+                _scrollToCountry.value = lastCountry
+            }
         }
     }
 
@@ -48,6 +72,9 @@ class CountryViewModel @Inject constructor(
             val result = getCountryDetail(name)
             _countryDetail.value = result
             _isLoading.value = false
+
+
+            saveLastVisitedCountry(name)
         }
     }
 
@@ -74,5 +101,9 @@ class CountryViewModel @Inject constructor(
                         country.officialName.contains(query, ignoreCase = true)
             }
         }
+    }
+
+    fun clearScrollToCountry() {
+        _scrollToCountry.value = null
     }
 }

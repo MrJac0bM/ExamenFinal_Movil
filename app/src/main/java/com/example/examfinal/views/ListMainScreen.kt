@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -33,6 +34,8 @@ import androidx.navigation.NavController
 import com.example.examfinal.navigation.Screen
 import com.example.examfinal.presentation.CountryViewModel
 import com.example.examfinal.views.components.CountryCard
+import com.example.examfinal.views.components.InfoFloatingButton
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,10 +46,26 @@ fun ListMainScreen(
     val countries by viewModel.countries.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val scrollToCountry by viewModel.scrollToCountry.collectAsState()
 
-    // Cargar países al iniciar
+    val listState = rememberLazyListState()
+
     LaunchedEffect(Unit) {
         viewModel.fetchCountries()
+    }
+
+    LaunchedEffect(scrollToCountry, countries) {
+        scrollToCountry?.let { countryName ->
+            if (countries.isNotEmpty()) {
+                val index = countries.indexOfFirst {
+                    it.commonName.equals(countryName, ignoreCase = true)
+                }
+                if (index != -1) {
+                    listState.animateScrollToItem(index)
+                    viewModel.clearScrollToCountry()
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -58,6 +77,10 @@ fun ListMainScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
+        },
+        floatingActionButton = {
+
+            InfoFloatingButton()
         }
     ) { paddingValues ->
         Column(
@@ -65,7 +88,6 @@ fun ListMainScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Barra de búsqueda
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.onSearchQueryChange(it) },
@@ -92,7 +114,6 @@ fun ListMainScreen(
                 singleLine = true
             )
 
-            // Contenido
             Box(modifier = Modifier.fillMaxSize()) {
                 when {
                     isLoading -> {
@@ -118,6 +139,7 @@ fun ListMainScreen(
                     }
                     else -> {
                         LazyColumn(
+                            state = listState,
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
