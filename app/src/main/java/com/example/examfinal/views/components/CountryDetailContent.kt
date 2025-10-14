@@ -28,7 +28,7 @@ fun CountryDetailContent(country: CountryDetailDomain) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            // Bandera
+
             AsyncImage(
                 model = country.flagUrl,
                 contentDescription = "Bandera de ${country.commonName}",

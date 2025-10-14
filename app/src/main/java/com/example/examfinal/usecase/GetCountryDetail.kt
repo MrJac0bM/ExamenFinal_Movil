@@ -5,6 +5,15 @@ import com.example.examfinal.domain.CountryDetailDomain
 import javax.inject.Inject
 
 
+/**
+ * Caso de uso para obtener el detalle de un país específico.
+ *
+ * Encapsula la lógica de negocio para la obtención de información
+ * detallada de un país individual.
+ *
+ * @property repository Repositorio de países
+ */
+
 class GetCountryDetail @Inject constructor(
     private val repository: CountryRepository
 ) {
