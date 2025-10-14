@@ -1,25 +1,27 @@
-package com.example.examfinal.data.remote.api
+package com.example.examfinal.data.remote.dto
 
-import com.example.examfinal.data.remote.dto.CountryDetailResponse
-import com.example.examfinal.data.remote.dto.CountryResponse
 import com.example.examfinal.domain.CountryDetailDomain
-import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.Path
-import retrofit2.http.Query
 
-interface CountryApiService {
 
-    @GET("v3.1/all")
-    suspend fun getAllCountries(
-        @Query("fields") fields: String = "name"
-    ): List<CountryResponse>
+data class CountryDetailResponse(
+    val name: NameResponse,
+    val capital: List<String>? = null,
+    val population: Long? = null,
+    val region: String? = null,
+    val subregion: String? = null,
+    val languages: Map<String, String>? = null,
+    val flags: FlagsResponse? = null,
+    val timezones: List<String>? = null,
+    val area: Double? = null
+)
 
-    @GET("v3.1/name/{name}")
-    suspend fun getCountryByName(
-        @Path("name") name: String
-    ): List<CountryDetailResponse>
-}
+data class FlagsResponse(
+    val png: String? = null,
+    val svg: String? = null,
+    val alt: String? = null
+)
+
+
 
 fun CountryDetailResponse.toDetailDomain(): CountryDetailDomain {
     return CountryDetailDomain(
