@@ -21,3 +21,8 @@ Aplicación móvil Android que consume la API de REST Countries para mostrar inf
 - **Almacenamiento**: DataStore Preferences
 - **Imágenes**: Coil
 - **Asincronía**: Coroutines + Flow
+
+
+A01712021 
+Jacob Espejel Guiza 
+Android
